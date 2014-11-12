@@ -86,9 +86,14 @@ void Heap<Pri, T>::add(std::pair<Pri, T> toAdd){
 	if (numItems >= arrSize) {
 		grow();
 	}
+	
 	backingArray[numItems - 1] = toAdd;
+	
+	if (numItems == 1) {
+		return;
+	}
+	
 	bubbleUp(numItems - 1);
-	trickleDown(numItems - 1);
 }
 
 //Check the item at index, and make sure it is in the right place.
@@ -96,14 +101,16 @@ void Heap<Pri, T>::add(std::pair<Pri, T> toAdd){
 // place
 template<class Pri, class T>
 void Heap<Pri, T>::bubbleUp(unsigned long index){
+	if (index == 0) {
+		return;
+	}
 	if (backingArray[index] >= backingArray[(index - 1) / 2]) { //if the element at this index is >= than its parent
 		return;
 	}
-	while (backingArray[index] < backingArray[(index - 1) / 2]) { //while this element is smaller than its parent
 		std::pair<Pri, T> tmp = backingArray[index];				//swap the values at each index
 		backingArray[index] = backingArray[(index - 1) / 2];
 		backingArray[(index - 1) / 2] = tmp;
-	}
+		return bubbleUp((index - 1) / 2);
 }
 
 //Check the item at index, and make sure it is in the right place.
@@ -111,7 +118,21 @@ void Heap<Pri, T>::bubbleUp(unsigned long index){
 // place
 template<class Pri, class T>
 void Heap<Pri, T>::trickleDown(unsigned long index){
-	//TODO
+	if (backingArray[index] <= backingArray[2 * index + 1] && backingArray[index] <= backingArray[2 * index + 2]) {
+		return;
+	}
+		if (backingArray[2 * index + 1] < backingArray[2 * index + 2]) { //if the left child is smaller than the right child
+			std::pair<Pri, T> tmp = backingArray[index];				//swap the index with the left child
+			backingArray[index] = backingArray[2 * index + 1];
+			backingArray[2 * index + 1] = tmp;
+			return trickleDown(2 * index + 1);
+		}
+		else {
+			std::pair<Pri, T> tmp = backingArray[index];				//else, swap with the right child
+			backingArray[index] = backingArray[2 * index + 2];
+			backingArray[2 * index + 2] = tmp;
+			return trickleDown(2 * index + 2);
+		}
 }
 
 //Remove the item with lowest priority, and return it
@@ -120,11 +141,21 @@ template<class Pri, class T>
 std::pair<Pri, T> Heap<Pri, T>::remove(){
 	if (numItems == 0) {
 		std::cout << "ERROR: Queue is empty and cannot remove" << std::endl;
-		//return tmp;
 	}
-	//backingArray[numItems - 1] = NULL;
-	std::pair<Pri, T> tmp;
-	return tmp;
+	
+	if (numItems > 1) {
+	std::pair<Pri, T> tmp = backingArray[0];				//swap root with bottom
+	backingArray[0] = backingArray[numItems - 1];
+	backingArray[numItems - 1] = tmp;
+
+	trickleDown(0);
+	}
+	
+	numItems--;
+	std::pair<Pri, T> ret = backingArray[numItems - 1];
+	backingArray[numItems - 1].first = NULL;
+	numItems--;
+	return ret;
 }
 
 template<class Pri, class T>
